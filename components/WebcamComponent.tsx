@@ -8,7 +8,7 @@ import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision'; // Im
 const WebcamComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null); // Reference to the video element to access the webcam feed.
   const canvasRef = useRef<HTMLCanvasElement>(null); // Reference to the canvas element for drawing the video and landmarks.
-  const [timer, setTimer] = useState(3 * 2); // State to hold the timer value, initialized to 30 minutes (in seconds).
+  const [timer, setTimer] = useState(30 * 60); // State to hold the timer value, initialized to 30 minutes (in seconds).
   const [timerRunning, setTimerRunning] = useState(false); // State to track if the timer is running.
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null); // State to hold the face landmark detector instance.
   const [isStarted, setIsStarted] = useState(false); // State to track if the start button has been pressed.
