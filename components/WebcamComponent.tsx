@@ -8,10 +8,11 @@ import { FilesetResolver, FaceLandmarker } from '@mediapipe/tasks-vision'; // Im
 const WebcamComponent = () => {
   const videoRef = useRef<HTMLVideoElement>(null); // Reference to the video element to access the webcam feed.
   const canvasRef = useRef<HTMLCanvasElement>(null); // Reference to the canvas element for drawing the video and landmarks.
-  const [timer, setTimer] = useState(30 * 60); // State to hold the timer value, initialized to 30 minutes (in seconds).
+  const [timer, setTimer] = useState(3 * 2); // State to hold the timer value, initialized to 30 minutes (in seconds).
   const [timerRunning, setTimerRunning] = useState(false); // State to track if the timer is running.
   const [faceLandmarker, setFaceLandmarker] = useState<FaceLandmarker | null>(null); // State to hold the face landmark detector instance.
   const [isStarted, setIsStarted] = useState(false); // State to track if the start button has been pressed.
+  const [isPaused, setIsPaused] = useState(false); // State to track if the pause button has been pressed.
 
   useEffect(() => {
     // useEffect to load the face landmark detector.
@@ -37,13 +38,13 @@ const WebcamComponent = () => {
   useEffect(() => {
     // useEffect to handle the timer logic.
     let interval: NodeJS.Timeout | null = null;
-    if (timerRunning) {
-      // If the timer is running, set an interval to decrement the timer every second.
+    if (timerRunning && !isPaused && timer > 0) {
+      // If the timer is running and not paused, set an interval to decrement the timer every second.
       interval = setInterval(() => {
-        setTimer(prevTimer => prevTimer - 1);
+        setTimer(prevTimer => Math.max(prevTimer - 1, 0));
       }, 1000);
-    } else if (!timerRunning && timer !== 0) {
-      // If the timer is paused and not zero, clear the interval.
+    } else if ((!timerRunning || isPaused) && timer !== 0) {
+      // If the timer is paused or not running and not zero, clear the interval.
       if (interval) {
         clearInterval(interval);
       }
@@ -54,7 +55,15 @@ const WebcamComponent = () => {
         clearInterval(interval);
       }
     };
-  }, [timerRunning, timer]);
+  }, [timerRunning, isPaused, timer]);
+
+  useEffect(() => {
+    if (timer === 0) {
+      // Play a sound when the timer reaches 0.
+      const audio = new Audio('https://cdn.pixabay.com/download/audio/2024/03/05/audio_b858bdb82f.mp3?filename=small-rock-break-194553.mp3');
+      audio.play();
+    }
+  }, [timer]);
 
   const startWebcamAndDetection = async () => {
     // Function to start the webcam and face detection.
@@ -107,7 +116,12 @@ const WebcamComponent = () => {
 
   const handleStart = () => {
     setIsStarted(true); // Set the started state to true.
+    setIsPaused(false); // Ensure the timer is not paused.
     startWebcamAndDetection(); // Start the webcam and face detection.
+  };
+
+  const handlePause = () => {
+    setIsPaused(!isPaused); // Toggle the pause state.
   };
 
   return (
@@ -133,6 +147,30 @@ const WebcamComponent = () => {
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#4CAF50')}
         >
           Start
+        </button>
+      )}
+
+      {/* Pause button */}
+      {isStarted && (
+        <button
+          onClick={handlePause}
+          style={{
+            display: 'block',
+            margin: '20px auto',
+            padding: '15px 30px',
+            fontSize: '18px',
+            backgroundColor: isPaused ? '#4CAF50' : '#FFA500', // Change color based on pause state
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+            transition: 'background-color 0.3s ease',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = isPaused ? '#45a049' : '#e69500')}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = isPaused ? '#4CAF50' : '#FFA500')}
+        >
+          {isPaused ? 'Resume' : 'Pause'}
         </button>
       )}
 
